@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Maths-SP — Question du jour</title>
+<script>
+window.MathJax = {
+  tex: { inlineMath: [['\\(','\\)']], displayMath: [['\\[','\\]']] },
+  svg: { fontCache: 'global' }
+};
+</script>
+<script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+<style>
+  :root{
+    --bg:#f4f6fb;
+    --card:#ffffff;
+    --ink:#16243d;
+    --blue:#1d4ed8;
+    --accent:#0e9f6e;
+    --red:#dc2626;
+    --muted:#64748b;
+    --border:#e2e8f0;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{height:100%;}
+  body{
+    background:#0f172a;
+    display:flex;align-items:center;justify-content:center;
+    font-family:"Segoe UI",system-ui,-apple-system,Roboto,sans-serif;
+    padding:12px;
+  }
+  /* Cadre vertical 9:16 */
+  .stage{
+    position:relative;
+    width:min(100vw - 24px, calc((100vh - 24px) * 9 / 16), 430px);
+    aspect-ratio:9/16;
+    background:var(--bg);
+    border-radius:22px;
+    overflow:hidden;
+    box-shadow:0 20px 60px rgba(0,0,0,.5);
+    display:flex;flex-direction:column;
+  }
+  .header{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:14px 18px 10px;
+  }
+  .logo{
+    font-weight:800;font-size:1.05rem;color:var(--blue);
+    letter-spacing:.5px;
+  }
+  .logo span{color:var(--accent);}
+  .badge{
+    font-size:.68rem;font-weight:700;color:var(--muted);
+    background:#eef2f7;border:1px solid var(--border);
+    padding:4px 10px;border-radius:999px;
+  }
+  .scroll{
+    flex:1;overflow-y:auto;padding:4px 20px 12px;
+    display:flex;flex-direction:column;gap:14px;
+    scrollbar-width:none;
+  }
+  .scroll::-webkit-scrollbar{display:none;}
+
+  .screen-title{
+    text-align:center;font-size:.8rem;font-weight:800;letter-spacing:3px;
+    color:var(--muted);text-transform:uppercase;
+  }
+  .card{
+    background:var(--card);border:1px solid var(--border);
+    border-radius:16px;padding:18px 16px;
+    box-shadow:0 2px 10px rgba(22,36,61,.05);
+  }
+  .qmath{
+    text-align:center;font-size:1.15rem;color:var(--ink);font-weight:600;
+    padding:6px 0 2px;
+  }
+  .question{color:var(--ink);font-size:.95rem;font-weight:600;text-align:center;}
+  .opts{display:flex;flex-direction:column;gap:8px;margin-top:4px;}
+  .opt{
+    display:flex;align-items:center;gap:12px;
+    border:1.5px solid var(--border);border-radius:12px;
+    padding:10px 14px;font-size:1rem;color:var(--ink);font-weight:600;
+    background:#fbfdff;transition:all .4s;
+  }
+  .opt .letter{
+    width:28px;height:28px;flex:0 0 28px;border-radius:50%;
+    background:#eef2f7;color:var(--blue);font-size:.85rem;font-weight:800;
+    display:flex;align-items:center;justify-content:center;transition:all .4s;
+  }
+  .opt.correct{
+    border-color:var(--accent);background:#ecfdf5;
+    box-shadow:0 0 0 3px rgba(14,159,110,.15);
+  }
+  .opt.correct .letter{background:var(--accent);color:#fff;}
+  .check{color:var(--accent);font-weight:900;margin-left:auto;font-size:1.1rem;}
+
+  /* Compte à rebours */
+  .countdown{
+    display:flex;flex-direction:column;align-items:center;gap:8px;
+    padding:6px 0 2px;
+  }
+  .cd-circle{
+    width:72px;height:72px;border-radius:50%;
+    background:var(--blue);color:#fff;
+    display:flex;align-items:center;justify-content:center;
+    font-size:2rem;font-weight:800;
+    box-shadow:0 8px 20px rgba(29,78,216,.35);
+    transition:transform .18s ease;
+  }
+  .cd-circle.pop{transform:scale(1.15);}
+  .cd-label{font-size:.72rem;font-weight:700;color:var(--muted);letter-spacing:1px;}
+  .call{
+    text-align:center;font-size:1.15rem;font-weight:800;color:var(--accent);
+    padding:2px 0 6px;
+  }
+
+  .step-title{
+    font-size:.72rem;font-weight:800;letter-spacing:2.5px;color:var(--muted);
+    text-transform:uppercase;text-align:center;margin-top:2px;
+  }
+  .step{
+    opacity:0;transform:translateY(14px);
+    transition:opacity .5s ease,transform .5s ease;
+  }
+  .step.visible{opacity:1;transform:translateY(0);}
+  .correction-line{
+    background:var(--card);border:1px solid var(--border);border-left:4px solid var(--blue);
+    border-radius:12px;padding:12px 14px;color:var(--ink);font-size:.98rem;
+  }
+  .warn{
+    border:1.5px solid #fecaca;background:#fef2f2;border-radius:14px;
+    padding:14px 16px;
+  }
+  .warn h3{
+    color:var(--red);font-size:.85rem;font-weight:800;letter-spacing:1px;
+    display:flex;align-items:center;gap:8px;margin-bottom:6px;
+  }
+  .warn p{color:#7f1d1d;font-size:.9rem;line-height:1.45;}
+  .answer{
+    border:2px solid var(--accent);background:#ecfdf5;border-radius:16px;
+    padding:18px;text-align:center;
+  }
+  .answer h3{
+    color:var(--accent);font-size:.8rem;font-weight:800;letter-spacing:2px;margin-bottom:8px;
+  }
+  .answer .big{font-size:1.35rem;font-weight:800;color:var(--ink);}
+  .remember{
+    text-align:center;background:#fffbeb;border:1px solid #fde68a;
+    color:#92400e;border-radius:14px;padding:13px 16px;font-size:.92rem;line-height:1.5;
+  }
+  .remember b{color:#b45309;}
+
+  .controls{
+    display:flex;gap:10px;padding:12px 18px 16px;background:var(--bg);
+    border-top:1px solid var(--border);
+  }
+  .btn{
+    flex:1;border:none;border-radius:12px;padding:12px 0;
+    font-size:.9rem;font-weight:800;cursor:pointer;letter-spacing:.5px;
+    transition:transform .12s, opacity .2s;
+  }
+  .btn:active{transform:scale(.96);}
+  .btn:disabled{opacity:.4;cursor:default;}
+  .btn-pause{background:var(--ink);color:#fff;}
+  .btn-replay{background:var(--blue);color:#fff;}
+
+  mjx-container{font-size:110% !important;}
+</style>
+</head>
+<body>
+<div class="stage">
+  <div class="header">
+    <div class="logo">Maths<span>-SP</span></div>
+    <div class="badge">Complexes · Terminale</div>
+  </div>
+
+  <div class="scroll" id="scroll">
+
+    <!-- ÉTAPE 1 -->
+    <div class="step" id="s1-title"><div class="screen-title">Question du jour</div></div>
+    <div class="step card" id="s1-card">
+      <div class="qmath">\[ z=\frac{1+2i}{\,2-i\,} \]</div>
+      <div class="question" style="margin-top:8px;">Quelle est la forme algébrique de \( z \) ?</div>
+      <div class="opts" style="margin-top:12px;">
+        <div class="opt"><div class="letter">A</div><div>\( i \)</div></div>
+        <div class="opt"><div class="letter">B</div><div>\( -\,i \)</div></div>
+        <div class="opt"><div class="letter">C</div><div>\( 1+i \)</div></div>
+        <div class="opt"><div class="letter">D</div><div>\( 5i \)</div></div>
+      </div>
+    </div>
+    <div class="step countdown" id="s1-count" style="display:none;">
+      <div class="cd-circle" id="cdNum">5</div>
+      <div class="cd-label">RÉFLEXION</div>
+    </div>
+    <div class="step call" id="s1-call" style="display:none;">À toi de jouer !</div>
+
+    <!-- ÉTAPE 3 -->
+    <div class="step step-title" id="s3-title" style="display:none;">Correction</div>
+    <div class="step correction-line" id="s3-1" style="display:none;">
+      On multiplie numérateur et dénominateur par le conjugué de \( 2-i \), c'est-à-dire \( 2+i \) :
+      \[ z=\frac{(1+2i)(2+i)}{(2-i)(2+i)} \]
+    </div>
+    <div class="step correction-line" id="s3-2" style="display:none;">
+      Développons le numérateur :
+      \[ (1+2i)(2+i)=2+i+4i+2i^2 \]
+      Or \( i^2=-1 \), donc \( (1+2i)(2+i)=2+5i-2=5i \).
+    </div>
+    <div class="step correction-line" id="s3-3" style="display:none;">
+      Calculons le dénominateur :
+      \[ (2-i)(2+i)=2^2+1^2=5 \]
+    </div>
+    <div class="step correction-line" id="s3-4" style="display:none;">
+      Donc :
+      \[ z=\frac{5i}{5}=i \]
+    </div>
+
+    <!-- ÉTAPE 4 -->
+    <div class="step warn" id="s4" style="display:none;">
+      <h3>⚠️ Point d'attention</h3>
+      <p>Ne pas oublier que \( i^2=-1 \). Une erreur classique consiste à écrire \( 2i^2=2 \) au lieu de \( -2 \), ce qui fausse tout le calcul.</p>
+    </div>
+
+    <!-- ÉTAPE 5 -->
+    <div class="step answer" id="s5" style="display:none;">
+      <h3>RÉPONSE</h3>
+      <div class="big">✓ A)&nbsp; \( z=i \)</div>
+    </div>
+
+    <!-- ÉTAPE 6 -->
+    <div class="step remember" id="s6" style="display:none;">
+      <b>À retenir :</b> pour mettre un quotient sous forme algébrique, multiplie par le conjugué du dénominateur : \( (a-ib)(a+ib)=a^2+b^2 \).
+    </div>
+
+  </div>
+
+  <div class="controls">
+    <button class="btn btn-pause" id="btnPause" disabled>⏸ Pause</button>
+    <button class="btn btn-replay" id="btnReplay">↻ Rejouer</button>
+  </div>
+</div>
+
+<script>
+(function(){
+  var timers = [];
+  var paused = false;
+  var pauseBtn = document.getElementById('btnPause');
+  var replayBtn = document.getElementById('btnReplay');
+  var scroll = document.getElementById('scroll');
+
+  function later(fn, delay){
+    var t = setTimeout(function(){ if(!paused){ fn(); } else { later(fn, 200); } }, delay);
+    timers.push(t);
+    return t;
+  }
+  function show(id){
+    var el = document.getElementById(id);
+    el.style.display = '';
+    requestAnimationFrame(function(){
+      requestAnimationFrame(function(){ el.classList.add('visible'); });
+    });
+    el.scrollIntoView({behavior:'smooth', block:'nearest'});
+  }
+  function scrollBottom(){
+    scroll.scrollTo({top: scroll.scrollHeight, behavior:'smooth'});
+  }
+  function typeset(){
+    if(window.MathJax && MathJax.typesetPromise){ MathJax.typesetPromise(); }
+  }
+
+  function countdown(cb){
+    var n = 5;
+    var circle = document.getElementById('cdNum');
+    circle.textContent = n;
+    circle.classList.add('pop');
+    function tick(){
+      if(paused){ timers.push(setTimeout(tick, 200)); return; }
+      n--;
+      if(n < 1){ circle.classList.remove('pop'); cb(); return; }
+      circle.textContent = n;
+      circle.classList.remove('pop');
+      void circle.offsetWidth;
+      circle.classList.add('pop');
+      timers.push(setTimeout(tick, 1000));
+    }
+    timers.push(setTimeout(tick, 1000));
+  }
+
+  function run(){
+    timers.forEach(clearTimeout);
+    timers = [];
+    paused = false;
+    pauseBtn.disabled = false;
+    pauseBtn.textContent = '⏸ Pause';
+
+    // Réinitialisation
+    ['s1-count','s1-call','s3-title','s3-1','s3-2','s3-3','s3-4','s4','s5','s6'].forEach(function(id){
+      var el = document.getElementById(id);
+      el.classList.remove('visible');
+      el.style.display = 'none';
+    });
+    var optCorrect = document.querySelector('.opt.correct');
+    if(optCorrect) optCorrect.classList.remove('correct');
+    var check = document.querySelector('.check');
+    if(check) check.remove();
+    scroll.scrollTop = 0;
+
+    // Étape 1
+    later(function(){ show('s1-title'); }, 300);
+    later(function(){ show('s1-card'); typeset(); }, 900);
+    later(function(){ show('s1-count'); }, 1800);
+    later(function(){ countdown(function(){
+      document.getElementById('s1-count').classList.remove('visible');
+      setTimeout(function(){
+        document.getElementById('s1-count').style.display = 'none';
+        show('s1-call');
+      }, 450);
+    }); }, 2200);
+
+    // Étape 2 — réflexion
+    later(function(){ show('s3-title'); }, 11000);
+
+    // Étape 3 — correction progressive
+    later(function(){ show('s3-1'); typeset(); }, 12000);
+    later(function(){ show('s3-2'); typeset(); }, 16500);
+    later(function(){ show('s3-3'); typeset(); }, 21500);
+    later(function(){ show('s3-4'); typeset(); }, 26000);
+
+    // Étape 4 — point d'attention
+    later(function(){ show('s4'); typeset(); }, 30500);
+
+    // Étape 5 — réponse
+    later(function(){
+      show('s5'); typeset();
+      var optA = document.querySelector('.opt');
+      optA.classList.add('correct');
+      var c = document.createElement('div');
+      c.className = 'check';
+      c.textContent = '✓';
+      optA.appendChild(c);
+    }, 34500);
+
+    // Étape 6 — à retenir
+    later(function(){ show('s6'); typeset(); scrollBottom(); }, 39000);
+  }
+
+  pauseBtn.addEventListener('click', function(){
+    paused = !paused;
+    pauseBtn.textContent = paused ? '▶ Reprendre' : '⏸ Pause';
+  });
+  replayBtn.addEventListener('click', run);
+
+  window.addEventListener('load', run);
+})();
+</script>
+</body>
+</html>
